@@ -2,20 +2,15 @@ import streamlit as st
 from clinical_case_generator import generate_clinical_case, _load_secrets
 import requests, json, time
 
-
 # --- Masquer les boutons Share, GitHub, Edit, Favoris ---
 hide_streamlit_style = """
     <style>
-    /* Cacher Share, GitHub, Favoris et Edit */
     [data-testid="stActionButton"] {display: none !important;}
     [title="Share"], [title="GitHub"], [title="Edit"], [title="Favorites"] {display: none !important;}
-    /* Garder seulement le menu (⋮) */
     [data-testid="stToolbar"] button:not(:last-child) {display: none !important;}
     </style>
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-
 
 st.set_page_config(page_title="🏥 CLINIC-BOT", layout="wide")
 
@@ -29,49 +24,47 @@ st.sidebar.header("⚙️ Paramètres du cas clinique")
 specialty = st.sidebar.selectbox(
     "Spécialité médicale",
     [
-
-"Médecine interne",
-"Gériatrie",
-"Urgences",
-"Réanimation médicale",
-"Anesthésie-réanimation",
-"SAMU / SMUR",
-"Cardiologie",
-"Pneumologie",
-"Chirurgie cardiaque",
-"Gastro-entérologie",
-"Endocrinologie",
-"Nutrition",
-"Néphrologie",
-"Urologie",
-"Hématologie",
-"Immunologie",
-"Oncologie",
-"Neurologie",
-"Neurochirurgie",
-"Psychiatrie",
-"Rhumatologie",
-"Orthopédie",
-"Gynécologie",
-"Pédiatrie",
-"Néonatologie",
-"Dermatologie",
-"Ophtalmologie",
-"ORL (Oto-Rhino-Laryngologie)",
-"Stomatologie / Chirurgie maxillo-faciale",
-],
+        "Médecine interne",
+        "Gériatrie",
+        "Urgences",
+        "Réanimation médicale",
+        "Anesthésie-réanimation",
+        "SAMU / SMUR",
+        "Cardiologie",
+        "Pneumologie",
+        "Chirurgie cardiaque",
+        "Gastro-entérologie",
+        "Endocrinologie",
+        "Nutrition",
+        "Néphrologie",
+        "Urologie",
+        "Hématologie",
+        "Immunologie",
+        "Oncologie",
+        "Neurologie",
+        "Neurochirurgie",
+        "Psychiatrie",
+        "Rhumatologie",
+        "Orthopédie",
+        "Gynécologie",
+        "Pédiatrie",
+        "Néonatologie",
+        "Dermatologie",
+        "Ophtalmologie",
+        "ORL (Oto-Rhino-Laryngologie)",
+        "Stomatologie / Chirurgie maxillo-faciale",
+    ],
 )
 severity = st.sidebar.selectbox("Gravité du cas", ["Mineur", "Modéré", "Critique"], index=1)
 
 # --- Génération du cas clinique ---
 if st.sidebar.button("🎬 Générer un nouveau cas clinique"):
-    # Réinitialisation de l'état
     st.session_state.clear()
     with st.spinner("Génération du cas clinique en cours..."):
         try:
             case_text = generate_clinical_case(model_name, specialty, severity, groq_api_key)
             st.session_state["current_case"] = case_text
-            st.session_state["phase"] = "input"  # Phase de saisie utilisateur
+            st.session_state["phase"] = "input"
             st.success("✅ Cas clinique généré avec succès !")
         except Exception as e:
             st.error(f"Erreur : {e}")
@@ -81,15 +74,14 @@ if "current_case" in st.session_state:
     st.markdown("## 📋 Cas Clinique")
     st.text_area("Texte du cas", st.session_state["current_case"], height=350, disabled=True)
 
-    # Afficher les champs de réponse seulement si on est en phase d’entrée
     if st.session_state.get("phase") == "input":
         st.markdown("## 🧠 Votre tentative de réponse")
 
         with st.form("user_response_form", clear_on_submit=False):
-            obs = st.text_area("🩺 Observation", height=120, placeholder="Décris ton observation clinique ici...")
-            pron = st.text_area("⚕️ Pronostic vital", height=120, placeholder="Évalue le pronostic vital du patient...")
-            prise = st.text_area("👩‍⚕️ Prise en charge infirmière", height=120, placeholder="Interventions prioritaires...")
-            evalt = st.text_area("📈 Évaluation", height=120, placeholder="Critères de suivi et de réévaluation...")
+            obs = st.text_area("🩺 Observation", height=120)
+            pron = st.text_area("⚕️ Pronostic vital", height=120)
+            prise = st.text_area("👩‍⚕️ Prise en charge infirmière", height=120)
+            evalt = st.text_area("📈 Évaluation", height=120)
             submit = st.form_submit_button("📤 Soumettre mes réponses")
 
         if submit:
@@ -104,7 +96,6 @@ if "current_case" in st.session_state:
                 }
                 st.session_state["phase"] = "evaluation"
 
-    # Si phase = évaluation → générer la correction AI
     elif st.session_state.get("phase") == "evaluation":
         with st.spinner("Évaluation en cours par l'IA..."):
             try:
@@ -127,17 +118,6 @@ Ta mission :
 2️⃣ Compare chaque réponse de l'étudiant à la correction.  
 3️⃣ Donne une note /5 pour chaque section.  
 4️⃣ Termine par un résumé global constructif (points forts et axes d'amélioration).
-
-Format attendu :
-### ✅ Correction attendue
-...
-### 🧩 Évaluation de l'étudiant
-- Observation : ...
-- Pronostic vital : ...
-- Prise en charge infirmière : ...
-- Évaluation : ...
-### 🏁 Note globale et feedback
-...
 """
 
                 api_url = "https://api.groq.com/openai/v1/chat/completions"
@@ -154,8 +134,7 @@ Format attendu :
 
                 response = requests.post(api_url, headers=headers, json=payload, timeout=90)
                 if response.status_code == 200:
-                    data = response.json()
-                    result = data["choices"][0]["message"]["content"]
+                    result = response.json()["choices"][0]["message"]["content"]
                     st.session_state["evaluation_result"] = result
                     st.session_state["phase"] = "result"
                     st.success("✅ Évaluation terminée avec succès.")
@@ -164,7 +143,7 @@ Format attendu :
             except Exception as e:
                 st.error(f"Erreur pendant l'évaluation : {e}")
 
-# --- Affichage final du résultat ---
+# --- Résultat final ---
 if st.session_state.get("phase") == "result":
     st.markdown("## 🧾 Résultat de l’évaluation")
     st.markdown(st.session_state["evaluation_result"])
