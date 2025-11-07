@@ -27,17 +27,21 @@ def generate_clinical_case(model_name: str, specialty: str, severity: str, groq_
         _, model_name = _load_secrets()
 
     prompt = """
-Génère un **cas clinique structuré** destiné à un étudiant infirmier et pour les nouveau recu aussi. 
-Ne donne **aucune solution ou interprétation**.
+Génère un cas clinique complet et structuré destiné à un étudiant infirmier, y compris pour les nouveaux reçus.
+Ne donne aucune solution ni interprétation.
 
--Présentation du patient
--Contexte d’hospitalisation
--Histoire de la maladie / Situation actuelle
--Observation / Données cliniques
--Examens complémentaires 
+Le cas doit suivre la logique suivante :
+- Présentation du patient
+- Contexte d’hospitalisation
+- Histoire de la maladie / Situation actuelle
+- Observation / Données cliniques
+- Examens complémentaires
 
-N’inclus pas les signes vitaux, les données d’observation ni les résultats de dossier.
+Cependant, **n’indique pas ces titres dans le texte final**.  
+Écris le cas sous forme d’un récit fluide et cohérent, au style professionnel, clair et clinique.  
+N’inclus pas les signes vitaux, les données d’observation chiffrées ni les résultats du dossier.
 """
+
 
 
     api_url = "https://api.groq.com/openai/v1/chat/completions"
