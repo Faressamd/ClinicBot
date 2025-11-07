@@ -3,21 +3,6 @@ from clinical_case_generator import generate_clinical_case, _load_secrets
 import requests, json, time
 
 
-# --- Masquer le bouton "GitHub" et "Edit" ---
-hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;} /* Cache le menu principal (avec Edit) */
-    footer {visibility: hidden;} /* Cache le footer Streamlit */
-    header {visibility: hidden;} /* Cache le header (souvent avec GitHub link) */
-    [data-testid="stActionButtonIcon"] {display: none !important;} /* Cache le bouton GitHub s'il est affiché sous forme d'icône */
-    </style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-
-
-
-
 
 st.set_page_config(page_title="🏥 CLINIC-BOT", layout="wide")
 
@@ -31,15 +16,37 @@ st.sidebar.header("⚙️ Paramètres du cas clinique")
 specialty = st.sidebar.selectbox(
     "Spécialité médicale",
     [
-        "Détresse respiratoire",
-        "Douleur thoracique",
-        "Altération de l'état de conscience",
-        "Infection sévère",
-        "Trauma récent",
-        "Urgences cardiaques",
-        "Urgences neurologiques",
-        "Urgences pédiatriques",
-    ],
+
+"Médecine interne",
+"Gériatrie",
+"Urgences",
+"Réanimation médicale",
+"Anesthésie-réanimation",
+"SAMU / SMUR",
+"Cardiologie",
+"Pneumologie",
+"Chirurgie cardiaque",
+"Gastro-entérologie",
+"Endocrinologie",
+"Nutrition",
+"Néphrologie",
+"Urologie",
+"Hématologie",
+"Immunologie",
+"Oncologie",
+"Neurologie",
+"Neurochirurgie",
+"Psychiatrie",
+"Rhumatologie",
+"Orthopédie",
+"Gynécologie",
+"Pédiatrie",
+"Néonatologie",
+"Dermatologie",
+"Ophtalmologie",
+"ORL (Oto-Rhino-Laryngologie)",
+"Stomatologie / Chirurgie maxillo-faciale",
+],
 )
 severity = st.sidebar.selectbox("Gravité du cas", ["Mineur", "Modéré", "Critique"], index=1)
 
