@@ -3,6 +3,19 @@ from clinical_case_generator import generate_clinical_case, _load_secrets
 import requests, json, time
 
 
+# --- Masquer les boutons Share, GitHub, Edit, Favoris ---
+hide_streamlit_style = """
+    <style>
+    /* Cacher Share, GitHub, Favoris et Edit */
+    [data-testid="stActionButton"] {display: none !important;}
+    [title="Share"], [title="GitHub"], [title="Edit"], [title="Favorites"] {display: none !important;}
+    /* Garder seulement le menu (⋮) */
+    [data-testid="stToolbar"] button:not(:last-child) {display: none !important;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+
 
 st.set_page_config(page_title="🏥 CLINIC-BOT", layout="wide")
 
