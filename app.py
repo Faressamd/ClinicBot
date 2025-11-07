@@ -12,6 +12,27 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
+
+# --- Masquer Share, Favoris, GitHub et Edit, garder seulement ⋮ ---
+hide_streamlit_style = """
+    <style>
+    /* Cacher tous les boutons du bandeau sauf le menu (⋮) */
+    [data-testid="stToolbar"] > div:first-child button {display: none !important;}
+    [data-testid="stToolbar"] svg[aria-label="Share"],
+    [data-testid="stToolbar"] svg[aria-label="GitHub"],
+    [data-testid="stToolbar"] svg[aria-label="Edit"],
+    [data-testid="stToolbar"] svg[aria-label="Star"] {
+        display: none !important;
+    }
+
+    /* Supprimer le texte "Share" aussi */
+    [data-testid="stToolbar"] span {display: none !important;}
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+
+
 st.set_page_config(page_title="🏥 CLINIC-BOT", layout="wide")
 
 st.title("🏥 CLINIC-BOT — Formation clinique intelligente")
