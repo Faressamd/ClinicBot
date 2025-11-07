@@ -2,6 +2,23 @@ import streamlit as st
 from clinical_case_generator import generate_clinical_case, _load_secrets
 import requests, json, time
 
+
+# --- Masquer le bouton "GitHub" et "Edit" ---
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;} /* Cache le menu principal (avec Edit) */
+    footer {visibility: hidden;} /* Cache le footer Streamlit */
+    header {visibility: hidden;} /* Cache le header (souvent avec GitHub link) */
+    [data-testid="stActionButtonIcon"] {display: none !important;} /* Cache le bouton GitHub s'il est affiché sous forme d'icône */
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+
+
+
+
+
 st.set_page_config(page_title="🏥 CLINIC-BOT", layout="wide")
 
 st.title("🏥 CLINIC-BOT — Formation clinique intelligente")
