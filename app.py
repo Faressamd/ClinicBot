@@ -1,152 +1,109 @@
 import streamlit as st
+import requests
+import json
+import time
+import threading
 from clinical_case_generator import generate_clinical_case, _load_secrets
-import requests, json, time
 
-# --- Masquer les boutons Share, GitHub, Edit, Favoris ---
-hide_streamlit_style = """
-    <style>
-    [data-testid="stActionButton"] {display: none !important;}
-    [title="Share"], [title="GitHub"], [title="Edit"], [title="Favorites"] {display: none !important;}
-    [data-testid="stToolbar"] button:not(:last-child) {display: none !important;}
-    </style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+st.set_page_config(page_title="ClinicBot", layout="centered")
 
-st.set_page_config(page_title="🏥 CLINIC-BOT", layout="wide")
+# --- Initialisation de l'état ---
+if "phase" not in st.session_state:
+    st.session_state["phase"] = "intro"
 
-st.title("🏥 CLINIC-BOT — Formation clinique intelligente")
+# --- Interface principale ---
+st.title("🧠 ClinicBot - Générateur de cas cliniques")
 
-# Charger clé API et modèle
-groq_api_key, model_name = _load_secrets()
-
-# --- Barre latérale : paramètres du cas ---
-st.sidebar.header("⚙️ Paramètres du cas clinique")
-specialty = st.sidebar.selectbox(
-    "Spécialité médicale",
+# Sélection de la spécialité
+specialite = st.selectbox(
+    "Sélectionnez la spécialité médicale :",
     [
-        "Médecine interne",
-        "Gériatrie",
-        "Urgences",
-        "Réanimation médicale",
-        "Anesthésie-réanimation",
-        "SAMU / SMUR",
         "Cardiologie",
+        "Neurologie",
         "Pneumologie",
-        "Chirurgie cardiaque",
         "Gastro-entérologie",
         "Endocrinologie",
-        "Nutrition",
-        "Néphrologie",
-        "Urologie",
-        "Hématologie",
-        "Immunologie",
-        "Oncologie",
-        "Neurologie",
-        "Neurochirurgie",
-        "Psychiatrie",
-        "Rhumatologie",
-        "Orthopédie",
-        "Gynécologie",
         "Pédiatrie",
-        "Néonatologie",
+        "Gynécologie",
+        "Psychiatrie",
         "Dermatologie",
-        "Ophtalmologie",
-        "ORL (Oto-Rhino-Laryngologie)",
-        "Stomatologie / Chirurgie maxillo-faciale",
+        "Néphrologie"
     ],
 )
-severity = st.sidebar.selectbox("Gravité du cas", ["Mineur", "Modéré", "Critique"], index=1)
 
-# --- Génération du cas clinique ---
-if st.sidebar.button("🎬 Générer un nouveau cas clinique"):
-    st.session_state.clear()
+# Bouton pour générer un cas
+if st.button("🎯 Générer un cas clinique"):
+    st.session_state["phase"] = "result"
     with st.spinner("Génération du cas clinique en cours..."):
         try:
-            case_text = generate_clinical_case(model_name, specialty, severity, groq_api_key)
-            st.session_state["current_case"] = case_text
-            st.session_state["phase"] = "input"
-            st.success("✅ Cas clinique généré avec succès !")
+            case = generate_clinical_case(specialite)
+            st.session_state["evaluation_result"] = case
         except Exception as e:
-            st.error(f"Erreur : {e}")
+            st.error(f"Erreur lors de la génération : {e}")
 
-# --- Affichage du cas clinique ---
-if "current_case" in st.session_state:
-    st.markdown("## 📋 Cas Clinique")
-    st.text_area("Texte du cas", st.session_state["current_case"], height=350, disabled=True)
-
-    if st.session_state.get("phase") == "input":
-        st.markdown("## 🧠 Votre tentative de réponse")
-
-        with st.form("user_response_form", clear_on_submit=False):
-            obs = st.text_area("🩺 Observation", height=120)
-            pron = st.text_area("⚕️ Pronostic vital", height=120)
-            prise = st.text_area("👩‍⚕️ Prise en charge infirmière", height=120)
-            evalt = st.text_area("📈 Évaluation", height=120)
-            submit = st.form_submit_button("📤 Soumettre mes réponses")
-
-        if submit:
-            if not all([obs, pron, prise, evalt]):
-                st.warning("⚠️ Merci de remplir toutes les sections avant de soumettre.")
-            else:
-                st.session_state["user_responses"] = {
-                    "Observation": obs,
-                    "Pronostic vital": pron,
-                    "Prise en charge infirmière": prise,
-                    "Évaluation": evalt,
-                }
-                st.session_state["phase"] = "evaluation"
-
-    elif st.session_state.get("phase") == "evaluation":
-        with st.spinner("Évaluation en cours par l'IA..."):
-            try:
-                user_responses = st.session_state["user_responses"]
-                case_text = st.session_state["current_case"]
-
-                evaluation_prompt = f"""
-Tu es un formateur en soins infirmiers.
-Voici un cas clinique :
-{case_text}
-
-L'étudiant a répondu :
-Observation : {user_responses['Observation']}
-Pronostic vital : {user_responses['Pronostic vital']}
-Prise en charge infirmière : {user_responses['Prise en charge infirmière']}
-Évaluation : {user_responses['Évaluation']}
-
-Ta mission :
-1️⃣ Donne la correction attendue pour chaque section.  
-2️⃣ Compare chaque réponse de l'étudiant à la correction.  
-3️⃣ Donne une note /5 pour chaque section.  
-4️⃣ Termine par un résumé global constructif (points forts et axes d'amélioration).
-"""
-
-                api_url = "https://api.groq.com/openai/v1/chat/completions"
-                headers = {"Authorization": f"Bearer {groq_api_key}", "Content-Type": "application/json"}
-                payload = {
-                    "model": model_name,
-                    "messages": [
-                        {"role": "system", "content": "Tu es un expert en pédagogie clinique."},
-                        {"role": "user", "content": evaluation_prompt},
-                    ],
-                    "temperature": 0.6,
-                    "max_tokens": 900,
-                }
-
-                response = requests.post(api_url, headers=headers, json=payload, timeout=90)
-                if response.status_code == 200:
-                    result = response.json()["choices"][0]["message"]["content"]
-                    st.session_state["evaluation_result"] = result
-                    st.session_state["phase"] = "result"
-                    st.success("✅ Évaluation terminée avec succès.")
-                else:
-                    st.error(f"Erreur API : {response.status_code} - {response.text}")
-            except Exception as e:
-                st.error(f"Erreur pendant l'évaluation : {e}")
-
-# --- Résultat final ---
+# --- Affichage du résultat ---
 if st.session_state.get("phase") == "result":
-    st.markdown("## 🧾 Résultat de l’évaluation")
+    st.markdown("## 🧾 Cas clinique généré")
     st.markdown(st.session_state["evaluation_result"])
     st.markdown("---")
 
-st.caption("Made with ❤️ | CLINIC-BOT | Designed by Nermine El Melki")
+    # Minuteur de 30 secondes avant popup
+    if "popup_shown" not in st.session_state:
+        st.session_state["popup_shown"] = False
+
+        def show_popup_later():
+            time.sleep(30)
+            st.session_state["popup_shown"] = True
+            st.experimental_rerun()
+
+        threading.Thread(target=show_popup_later).start()
+
+# --- Popup Streamlit ---
+if st.session_state.get("popup_shown"):
+    with st.modal("🧾 Formulaire de retour"):
+        st.markdown("### Merci de remplir ce court formulaire 👇")
+
+        # Champs du formulaire
+        prenom = st.text_input("Prénom")
+        nom = st.text_input("Nom")
+        age = st.number_input("Âge", min_value=18, max_value=99, step=1)
+        statut = st.selectbox("Statut", ["Étudiant(e)", "Nouveau(elle) recruté(e)"])
+        annee_etude = st.text_input("Année d’étude (si étudiant)", disabled=(statut != "Étudiant(e)"))
+        universite = st.text_input("Université (si étudiant)", disabled=(statut != "Étudiant(e)"))
+        hopital = st.text_input("Hôpital (si nouveau recruté)", disabled=(statut != "Nouveau(elle) recruté(e)"))
+        service = st.text_input("Service / Unité hospitalière", disabled=(statut != "Nouveau(elle) recruté(e)"))
+        niveau_experience = st.selectbox("Niveau d’expérience clinique", ["Débutant", "Intermédiaire", "Avancé"])
+        commentaire = st.text_area("Commentaire (optionnel)", placeholder="Vos remarques ou suggestions...")
+
+        google_script_url = "https://script.google.com/macros/s/AKfycbx6NLXvSJsHH40YJ0KKgabvT2nIaWu809vyWvpQygF5faGcH1vunfuIN8ijCgmOvS9pvw/exec"
+
+        col1, col2 = st.columns([1, 5])
+        with col1:
+            if st.button("❌ Fermer"):
+                st.session_state["popup_shown"] = False
+                st.experimental_rerun()
+        with col2:
+            if st.button("✅ Envoyer"):
+                payload = {
+                    "prenom": prenom,
+                    "nom": nom,
+                    "age": age,
+                    "statut": statut,
+                    "annee_etude": annee_etude,
+                    "universite": universite,
+                    "hopital": hopital,
+                    "service": service,
+                    "niveau_experience": niveau_experience,
+                    "commentaire": commentaire,
+                }
+
+                try:
+                    res = requests.post(google_script_url, json=payload, timeout=10)
+                    if res.status_code == 200:
+                        st.success("✅ Merci ! Vos informations ont été enregistrées avec succès.")
+                        st.session_state["popup_shown"] = False
+                        st.experimental_rerun()
+                    else:
+                        st.error(f"Erreur Google Sheet : {res.status_code}")
+                except Exception as e:
+                    st.error(f"Erreur d’envoi : {e}")
