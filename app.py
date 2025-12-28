@@ -44,33 +44,33 @@ with st.form("user_identity_form"):
         )
     submit_identity = st.form_submit_button("💾 Enregistrer")
 
-# ==================================================
-# ENREGISTREMENT GOOGLE SHEET
-# ==================================================
-if submit_identity:
-    if not nom or not prenom:
-        st.warning("⚠️ Nom et prénom sont obligatoires")
-    else:
-        payload = {
-            "nom": nom,
-            "prenom": prenom,
-            "profil": profil,
-            "classe": classe,
-            "etablissement_scolaire": etablissement_scolaire,
-            "etablissement_professionnel": etablissement_professionnel,
-            "experience": experience,
-        }
-        try:
-            response = requests.post(
-                google_script_url, json=payload, timeout=10
-            )
-            if response.status_code == 200:
-                st.session_state["user_registered"] = True
-                st.success("✅ Informations enregistrées avec succès")
-            else:
-                st.error("❌ Erreur lors de l'enregistrement Google Sheet")
-        except Exception as e:
-            st.error(f"Erreur : {e}")
+    # ==================================================
+    # ENREGISTREMENT GOOGLE SHEET
+    # ==================================================
+    if submit_identity:
+        if not nom or not prenom:
+            st.warning("⚠️ Nom et prénom sont obligatoires")
+        else:
+            payload = {
+                "nom": nom,
+                "prenom": prenom,
+                "profil": profil,
+                "classe": classe,
+                "etablissement_scolaire": etablissement_scolaire,
+                "etablissement_professionnel": etablissement_professionnel,
+                "experience": experience,
+            }
+            try:
+                response = requests.post(
+                    google_script_url, json=payload, timeout=10
+                )
+                if response.status_code == 200:
+                    st.session_state["user_registered"] = True
+                    st.success("✅ Informations enregistrées avec succès")
+                else:
+                    st.error("❌ Erreur lors de l'enregistrement Google Sheet")
+            except Exception as e:
+                st.error(f"Erreur : {e}")
 
 # ==================================================
 # BLOCAGE SI NON ENREGISTRÉ (APRÈS FORMULAIRE)
@@ -216,5 +216,3 @@ if st.session_state.get("phase") == "evaluation":
 if st.session_state.get("phase") == "result":
     st.markdown("## 🧾 Résultat de l’évaluation")
     st.markdown(st.session_state["evaluation_result"])
-    st.markdown("---")
-    st.caption("Made with ❤️ | CLINIC-BOT | Designed by Nermine El Melki")
