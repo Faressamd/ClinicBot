@@ -28,45 +28,38 @@ google_script_url = st.secrets["GOOGLE_SCRIPT_URL"]
 st.markdown("## 👤 Identification de l'utilisateur")
 
 with st.form("user_identity_form"):
-    st.session_state["nom_input"] = st.text_input("Nom")
-    st.session_state["prenom_input"] = st.text_input("Prénom")
-    st.session_state["profil_input"] = st.selectbox("Profil", ["Étudiant", "Infirmier"])
+    st.session_state["nom"] = st.text_input("Nom")
+    st.session_state["prenom"] = st.text_input("Prénom")
+    st.session_state["profil"] = st.selectbox("Profil", ["Étudiant", "Infirmier"])
 
-    if st.session_state["profil_input"] == "Étudiant":
-        st.session_state["classe_input"] = st.text_input("Classe")
-        st.session_state["etablissement_scolaire_input"] = st.text_input("Établissement scolaire")
-        st.session_state["etablissement_professionnel_input"] = ""
-        st.session_state["experience_input"] = ""
+    if st.session_state["profil"] == "Étudiant":
+        st.session_state["classe"] = st.text_input("Classe")
+        st.session_state["etablissement_scolaire"] = st.text_input("Établissement scolaire")
+        st.session_state["etablissement_professionnel"] = ""
+        st.session_state["experience"] = ""
     else:
-        st.session_state["classe_input"] = ""
-        st.session_state["etablissement_scolaire_input"] = ""
-        st.session_state["etablissement_professionnel_input"] = st.text_input("Établissement de travail")
-        st.session_state["experience_input"] = st.number_input(
-            "Années d'expérience", min_value=0, max_value=50, step=1
-        )
+        st.session_state["classe"] = ""
+        st.session_state["etablissement_scolaire"] = ""
+        st.session_state["etablissement_professionnel"] = st.text_input("Établissement de travail")
+        st.session_state["experience"] = st.number_input("Années d'expérience", min_value=0, max_value=50, step=1)
 
     submit_identity = st.form_submit_button("💾 Enregistrer")
 
+# ==================================================
+# ENREGISTREMENT GOOGLE SHEET
+# ==================================================
 if submit_identity:
-    nom = st.session_state.get("nom_input", "")
-    prenom = st.session_state.get("prenom_input", "")
-    profil = st.session_state.get("profil_input", "")
-    classe = st.session_state.get("classe_input", "")
-    etablissement_scolaire = st.session_state.get("etablissement_scolaire_input", "")
-    etablissement_professionnel = st.session_state.get("etablissement_professionnel_input", "")
-    experience = st.session_state.get("experience_input", "")
-
-    if not nom or not prenom:
+    if not st.session_state["nom"] or not st.session_state["prenom"]:
         st.warning("⚠️ Nom et prénom sont obligatoires")
     else:
         payload = {
-            "nom": nom,
-            "prenom": prenom,
-            "profil": profil,
-            "classe": classe,
-            "etablissement_scolaire": etablissement_scolaire,
-            "etablissement_professionnel": etablissement_professionnel,
-            "experience": experience,
+            "nom": st.session_state["nom"],
+            "prenom": st.session_state["prenom"],
+            "profil": st.session_state["profil"],
+            "classe": st.session_state["classe"],
+            "etablissement_scolaire": st.session_state["etablissement_scolaire"],
+            "etablissement_professionnel": st.session_state["etablissement_professionnel"],
+            "experience": st.session_state["experience"],
         }
         try:
             response = requests.post(google_script_url, json=payload, timeout=10)
