@@ -23,103 +23,85 @@ groq_api_key, model_name = _load_secrets()
 google_script_url = st.secrets["GOOGLE_SCRIPT_URL"]
 
 # ==================================================
-# FORMULAIRE IDENTIFICATION (TOUJOURS AFFICHÉ)
+# FORMULAIRE IDENTIFICATION
 # ==================================================
 st.markdown("## 👤 Identification de l'utilisateur")
+
 with st.form("user_identity_form"):
-    nom = st.text_input("Nom")
-    prenom = st.text_input("Prénom")
-    profil = st.selectbox("Profil", ["Étudiant", "Infirmier"])
-    classe = ""
-    etablissement_scolaire = ""
-    etablissement_professionnel = ""
-    experience = ""
-    if profil == "Étudiant":
-        classe = st.text_input("Classe")
-        etablissement_scolaire = st.text_input("Établissement scolaire")
-    if profil == "Infirmier":
-        etablissement_professionnel = st.text_input("Établissement de travail")
-        experience = st.number_input(
+    st.session_state["nom_input"] = st.text_input("Nom")
+    st.session_state["prenom_input"] = st.text_input("Prénom")
+    st.session_state["profil_input"] = st.selectbox("Profil", ["Étudiant", "Infirmier"])
+
+    if st.session_state["profil_input"] == "Étudiant":
+        st.session_state["classe_input"] = st.text_input("Classe")
+        st.session_state["etablissement_scolaire_input"] = st.text_input("Établissement scolaire")
+        st.session_state["etablissement_professionnel_input"] = ""
+        st.session_state["experience_input"] = ""
+    else:
+        st.session_state["classe_input"] = ""
+        st.session_state["etablissement_scolaire_input"] = ""
+        st.session_state["etablissement_professionnel_input"] = st.text_input("Établissement de travail")
+        st.session_state["experience_input"] = st.number_input(
             "Années d'expérience", min_value=0, max_value=50, step=1
         )
+
     submit_identity = st.form_submit_button("💾 Enregistrer")
 
-    # ==================================================
-    # ENREGISTREMENT GOOGLE SHEET
-    # ==================================================
-    if submit_identity:
-        if not nom or not prenom:
-            st.warning("⚠️ Nom et prénom sont obligatoires")
-        else:
-            payload = {
-                "nom": nom,
-                "prenom": prenom,
-                "profil": profil,
-                "classe": classe,
-                "etablissement_scolaire": etablissement_scolaire,
-                "etablissement_professionnel": etablissement_professionnel,
-                "experience": experience,
-            }
-            try:
-                response = requests.post(
-                    google_script_url, json=payload, timeout=10
-                )
-                if response.status_code == 200:
-                    st.session_state["user_registered"] = True
-                    st.success("✅ Informations enregistrées avec succès")
-                else:
-                    st.error("❌ Erreur lors de l'enregistrement Google Sheet")
-            except Exception as e:
-                st.error(f"Erreur : {e}")
+if submit_identity:
+    nom = st.session_state.get("nom_input", "")
+    prenom = st.session_state.get("prenom_input", "")
+    profil = st.session_state.get("profil_input", "")
+    classe = st.session_state.get("classe_input", "")
+    etablissement_scolaire = st.session_state.get("etablissement_scolaire_input", "")
+    etablissement_professionnel = st.session_state.get("etablissement_professionnel_input", "")
+    experience = st.session_state.get("experience_input", "")
+
+    if not nom or not prenom:
+        st.warning("⚠️ Nom et prénom sont obligatoires")
+    else:
+        payload = {
+            "nom": nom,
+            "prenom": prenom,
+            "profil": profil,
+            "classe": classe,
+            "etablissement_scolaire": etablissement_scolaire,
+            "etablissement_professionnel": etablissement_professionnel,
+            "experience": experience,
+        }
+        try:
+            response = requests.post(google_script_url, json=payload, timeout=10)
+            if response.status_code == 200:
+                st.session_state["user_registered"] = True
+                st.success("✅ Informations enregistrées avec succès")
+            else:
+                st.error("❌ Erreur lors de l'enregistrement Google Sheet")
+        except Exception as e:
+            st.error(f"Erreur : {e}")
 
 # ==================================================
-# BLOCAGE SI NON ENREGISTRÉ (APRÈS FORMULAIRE)
+# BLOCAGE SI NON ENREGISTRÉ
 # ==================================================
 if not st.session_state["user_registered"]:
     st.info("ℹ️ Veuillez remplir le formulaire pour accéder à l’application.")
     st.stop()
 
 # ==================================================
-# BARRE LATÉRALE — PARAMÈTRES CAS
+# PARAMÈTRES CAS CLINIQUE
 # ==================================================
 st.sidebar.header("⚙️ Paramètres du cas clinique")
 specialty = st.sidebar.selectbox(
     "Spécialité médicale",
     [
-        "Médecine interne",
-        "Gériatrie",
-        "Urgences",
-        "Réanimation médicale",
-        "Anesthésie-réanimation",
-        "SAMU / SMUR",
-        "Cardiologie",
-        "Pneumologie",
-        "Chirurgie cardiaque",
-        "Gastro-entérologie",
-        "Endocrinologie",
-        "Nutrition",
-        "Néphrologie",
-        "Urologie",
-        "Hématologie",
-        "Immunologie",
-        "Oncologie",
-        "Neurologie",
-        "Neurochirurgie",
-        "Psychiatrie",
-        "Rhumatologie",
-        "Orthopédie",
-        "Gynécologie",
-        "Pédiatrie",
-        "Néonatologie",
-        "Dermatologie",
-        "Ophtalmologie",
-        "ORL",
-        "Stomatologie / Chirurgie maxillo-faciale"
+        "Médecine interne","Gériatrie","Urgences","Réanimation médicale",
+        "Anesthésie-réanimation","SAMU / SMUR","Cardiologie","Pneumologie",
+        "Chirurgie cardiaque","Gastro-entérologie","Endocrinologie","Nutrition",
+        "Néphrologie","Urologie","Hématologie","Immunologie","Oncologie",
+        "Neurologie","Neurochirurgie","Psychiatrie","Rhumatologie","Orthopédie",
+        "Gynécologie","Pédiatrie","Néonatologie","Dermatologie","Ophtalmologie",
+        "ORL","Stomatologie / Chirurgie maxillo-faciale"
     ]
 )
-severity = st.sidebar.selectbox(
-    "Gravité du cas", ["Mineur", "Modéré", "Critique"], index=1
-)
+severity = st.sidebar.selectbox("Gravité du cas", ["Mineur", "Modéré", "Critique"], index=1)
 
 # ==================================================
 # GÉNÉRATION CAS CLINIQUE
@@ -129,9 +111,7 @@ if st.sidebar.button("🎬 Générer un nouveau cas clinique"):
     st.session_state.pop("phase", None)
     with st.spinner("Génération du cas clinique en cours..."):
         try:
-            case_text = generate_clinical_case(
-                model_name, specialty, severity, groq_api_key
-            )
+            case_text = generate_clinical_case(model_name, specialty, severity, groq_api_key)
             st.session_state["current_case"] = case_text
             st.session_state["phase"] = "input"
             st.success("✅ Cas clinique généré")
@@ -143,9 +123,7 @@ if st.sidebar.button("🎬 Générer un nouveau cas clinique"):
 # ==================================================
 if "current_case" in st.session_state:
     st.markdown("## 📋 Cas Clinique")
-    st.text_area(
-        "Texte du cas", st.session_state["current_case"], height=350, disabled=True
-    )
+    st.text_area("Texte du cas", st.session_state["current_case"], height=350, disabled=True)
 
     if st.session_state["phase"] == "input":
         st.markdown("## 🧠 Votre tentative de réponse")
@@ -185,10 +163,7 @@ if st.session_state.get("phase") == "evaluation":
         Mission : 1️⃣ Correction attendue 2️⃣ Comparaison 3️⃣ Note /5 par section 4️⃣ Feedback global constructif
         """
 
-        headers = {
-            "Authorization": f"Bearer {groq_api_key}",
-            "Content-Type": "application/json",
-        }
+        headers = {"Authorization": f"Bearer {groq_api_key}", "Content-Type": "application/json"}
         payload = {
             "model": model_name,
             "messages": [
