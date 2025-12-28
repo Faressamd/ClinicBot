@@ -2,21 +2,30 @@ import streamlit as st
 import requests
 from clinical_case_generator import generate_clinical_case, _load_secrets
 
-# --------------------------------------------------
-# CONFIGURATION PAGE
-# --------------------------------------------------
+# ==================================================
+# CONFIG PAGE
+# ==================================================
 st.set_page_config(page_title="🏥 CLINIC-BOT", layout="wide")
 st.title("🏥 CLINIC-BOT — Formation clinique intelligente")
 
-# --------------------------------------------------
-# CHARGEMENT SECRETS
-# --------------------------------------------------
-groq_api_key, model_name = _load_secrets()
-google_script_url = st.secrets.get("GOOGLE_SCRIPT_URL")
+# ==================================================
+# INITIALISATION SESSION
+# ==================================================
+if "user_registered" not in st.session_state:
+    st.session_state["user_registered"] = False
 
-# --------------------------------------------------
-# FORMULAIRE IDENTIFICATION UTILISATEUR
-# --------------------------------------------------
+if "phase" not in st.session_state:
+    st.session_state["phase"] = None
+
+# ==================================================
+# SECRETS
+# ==================================================
+groq_api_key, model_name = _load_secrets()
+google_script_url = st.secrets["GOOGLE_SCRIPT_URL"]
+
+# ==================================================
+# FORMULAIRE IDENTIFICATION (TOUJOURS AFFICHÉ)
+# ==================================================
 st.markdown("## 👤 Identification de l'utilisateur")
 
 with st.form("user_identity_form"):
@@ -44,9 +53,9 @@ with st.form("user_identity_form"):
 
     submit_identity = st.form_submit_button("💾 Enregistrer")
 
-# --------------------------------------------------
+# ==================================================
 # ENREGISTREMENT GOOGLE SHEET
-# --------------------------------------------------
+# ==================================================
 if submit_identity:
     if not nom or not prenom:
         st.warning("⚠️ Nom et prénom sont obligatoires")
@@ -72,20 +81,21 @@ if submit_identity:
                 st.session_state["user_registered"] = True
                 st.success("✅ Informations enregistrées avec succès")
             else:
-                st.error("❌ Erreur lors de l'enregistrement")
+                st.error("❌ Erreur lors de l'enregistrement Google Sheet")
+
         except Exception as e:
             st.error(f"Erreur : {e}")
 
-# --------------------------------------------------
-# BLOCAGE SI UTILISATEUR NON ENREGISTRÉ
-# --------------------------------------------------
-if not st.session_state.get("user_registered"):
-    st.info("ℹ️ Veuillez remplir le formulaire avant de continuer.")
+# ==================================================
+# BLOCAGE SI NON ENREGISTRÉ (APRÈS FORMULAIRE)
+# ==================================================
+if not st.session_state["user_registered"]:
+    st.info("ℹ️ Veuillez remplir le formulaire pour accéder à l’application.")
     st.stop()
 
-# --------------------------------------------------
-# BARRE LATÉRALE — PARAMÈTRES CAS CLINIQUE
-# --------------------------------------------------
+# ==================================================
+# BARRE LATÉRALE — PARAMÈTRES CAS
+# ==================================================
 st.sidebar.header("⚙️ Paramètres du cas clinique")
 
 specialty = st.sidebar.selectbox(
@@ -102,14 +112,18 @@ specialty = st.sidebar.selectbox(
     ]
 )
 
-severity = st.sidebar.selectbox("Gravité du cas", ["Mineur", "Modéré", "Critique"], index=1)
+severity = st.sidebar.selectbox(
+    "Gravité du cas",
+    ["Mineur", "Modéré", "Critique"],
+    index=1
+)
 
-# --------------------------------------------------
+# ==================================================
 # GÉNÉRATION CAS CLINIQUE
-# --------------------------------------------------
+# ==================================================
 if st.sidebar.button("🎬 Générer un nouveau cas clinique"):
-    st.session_state.clear()
-    st.session_state["user_registered"] = True
+    st.session_state.pop("current_case", None)
+    st.session_state.pop("phase", None)
 
     with st.spinner("Génération du cas clinique en cours..."):
         try:
@@ -125,10 +139,11 @@ if st.sidebar.button("🎬 Générer un nouveau cas clinique"):
         except Exception as e:
             st.error(f"Erreur : {e}")
 
-# --------------------------------------------------
-# AFFICHAGE CAS + RÉPONSES
-# --------------------------------------------------
+# ==================================================
+# AFFICHAGE CAS + FORMULAIRE RÉPONSE
+# ==================================================
 if "current_case" in st.session_state:
+
     st.markdown("## 📋 Cas Clinique")
     st.text_area(
         "Texte du cas",
@@ -137,15 +152,16 @@ if "current_case" in st.session_state:
         disabled=True
     )
 
-    if st.session_state.get("phase") == "input":
-        st.markdown("## 🧠 Votre réponse")
+    if st.session_state["phase"] == "input":
+
+        st.markdown("## 🧠 Votre tentative de réponse")
 
         with st.form("user_response_form"):
             obs = st.text_area("🩺 Observation", height=120)
             pron = st.text_area("⚕️ Pronostic vital", height=120)
             prise = st.text_area("👩‍⚕️ Prise en charge infirmière", height=120)
             evalt = st.text_area("📈 Évaluation", height=120)
-            submit = st.form_submit_button("📤 Soumettre")
+            submit = st.form_submit_button("📤 Soumettre mes réponses")
 
         if submit:
             if not all([obs, pron, prise, evalt]):
@@ -159,16 +175,17 @@ if "current_case" in st.session_state:
                 }
                 st.session_state["phase"] = "evaluation"
 
-# --------------------------------------------------
+# ==================================================
 # ÉVALUATION IA
-# --------------------------------------------------
+# ==================================================
 if st.session_state.get("phase") == "evaluation":
-    with st.spinner("Évaluation en cours par l'IA..."):
-        try:
-            user_responses = st.session_state["user_responses"]
-            case_text = st.session_state["current_case"]
 
-            evaluation_prompt = f"""
+    with st.spinner("Évaluation en cours par l'IA..."):
+
+        user_responses = st.session_state["user_responses"]
+        case_text = st.session_state["current_case"]
+
+        evaluation_prompt = f"""
 Tu es un formateur en soins infirmiers.
 
 Cas clinique :
@@ -184,42 +201,39 @@ Mission :
 1️⃣ Correction attendue
 2️⃣ Comparaison
 3️⃣ Note /5 par section
-4️⃣ Feedback global
+4️⃣ Feedback global constructif
 """
 
-            headers = {
-                "Authorization": f"Bearer {groq_api_key}",
-                "Content-Type": "application/json",
-            }
+        headers = {
+            "Authorization": f"Bearer {groq_api_key}",
+            "Content-Type": "application/json",
+        }
 
-            payload = {
-                "model": model_name,
-                "messages": [
-                    {"role": "system", "content": "Expert en pédagogie clinique"},
-                    {"role": "user", "content": evaluation_prompt},
-                ],
-                "temperature": 0.6,
-                "max_tokens": 900,
-            }
+        payload = {
+            "model": model_name,
+            "messages": [
+                {"role": "system", "content": "Tu es un expert en pédagogie clinique."},
+                {"role": "user", "content": evaluation_prompt},
+            ],
+            "temperature": 0.6,
+            "max_tokens": 900,
+        }
 
-            response = requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers=headers,
-                json=payload,
-                timeout=90,
-            )
+        response = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=90,
+        )
 
-            result = response.json()["choices"][0]["message"]["content"]
-            st.session_state["evaluation_result"] = result
-            st.session_state["phase"] = "result"
-            st.success("✅ Évaluation terminée")
+        result = response.json()["choices"][0]["message"]["content"]
+        st.session_state["evaluation_result"] = result
+        st.session_state["phase"] = "result"
+        st.success("✅ Évaluation terminée")
 
-        except Exception as e:
-            st.error(f"Erreur : {e}")
-
-# --------------------------------------------------
-# AFFICHAGE RÉSULTAT
-# --------------------------------------------------
+# ==================================================
+# RÉSULTAT FINAL
+# ==================================================
 if st.session_state.get("phase") == "result":
     st.markdown("## 🧾 Résultat de l’évaluation")
     st.markdown(st.session_state["evaluation_result"])
