@@ -20,7 +20,7 @@ defaults = {
     "prenom": "",
     "profil": "Étudiant",
     "etablissement": "",
-    "niveau_experience": "",
+    "niveau/experience": "",
 }
 
 for k, v in defaults.items():
@@ -87,12 +87,13 @@ if submit:
 
     else:
         payload = {
-            "nom": st.session_state.nom,
-            "prenom": st.session_state.prenom,
-            "profil": st.session_state.profil,
-            "etablissement": st.session_state.etablissement,
-            "classe_experience": st.session_state.niveau_experience,
-        }
+    "nom": nom,
+    "prenom": prenom,
+    "profil": profil,
+    "etablissement": etablissement,
+    "classe/experience": classe_experience
+}
+
 
         try:
             response = requests.post(
