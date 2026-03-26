@@ -23,25 +23,15 @@ groq_api_key, model_name = _load_secrets()
 google_script_url = st.secrets["GOOGLE_SCRIPT_URL"]
 
 # ==================================================
-# FORMULAIRE IDENTIFICATION
+# FORMULAIRE IDENTIFICATION (MODE ÉTUDIANT UNIQUEMENT)
 # ==================================================
-st.markdown("## 👤 Identification de l'utilisateur")
+st.markdown("## 👤 Identification de l'étudiant")
 
 with st.form("user_identity_form"):
     st.session_state["nom"] = st.text_input("Nom")
     st.session_state["prenom"] = st.text_input("Prénom")
-    st.session_state["profil"] = st.selectbox("Profil", ["Étudiant", "Infirmier"])
-
-    if st.session_state["profil"] == "Étudiant":
-        st.session_state["classe"] = st.text_input("Classe")
-        st.session_state["etablissement_scolaire"] = st.text_input("Établissement scolaire")
-        st.session_state["etablissement_professionnel"] = ""
-        st.session_state["experience"] = ""
-    else:
-        st.session_state["classe"] = ""
-        st.session_state["etablissement_scolaire"] = ""
-        st.session_state["etablissement_professionnel"] = st.text_input("Établissement de travail")
-        st.session_state["experience"] = st.number_input("Années d'expérience", min_value=0, max_value=50, step=1)
+    st.session_state["classe"] = st.text_input("Classe")
+    st.session_state["etablissement_scolaire"] = st.text_input("Établissement scolaire")
 
     submit_identity = st.form_submit_button("💾 Enregistrer")
 
@@ -55,19 +45,19 @@ if submit_identity:
         payload = {
             "nom": st.session_state["nom"],
             "prenom": st.session_state["prenom"],
-            "profil": st.session_state["profil"],
             "classe": st.session_state["classe"],
             "etablissement_scolaire": st.session_state["etablissement_scolaire"],
-            "etablissement_professionnel": st.session_state["etablissement_professionnel"],
-            "experience": st.session_state["experience"],
         }
+
         try:
             response = requests.post(google_script_url, json=payload, timeout=10)
+
             if response.status_code == 200:
                 st.session_state["user_registered"] = True
                 st.success("✅ Informations enregistrées avec succès")
             else:
                 st.error("❌ Erreur lors de l'enregistrement Google Sheet")
+
         except Exception as e:
             st.error(f"Erreur : {e}")
 
@@ -82,6 +72,7 @@ if not st.session_state["user_registered"]:
 # PARAMÈTRES CAS CLINIQUE
 # ==================================================
 st.sidebar.header("⚙️ Paramètres du cas clinique")
+
 specialty = st.sidebar.selectbox(
     "Spécialité médicale",
     [
@@ -94,6 +85,7 @@ specialty = st.sidebar.selectbox(
         "ORL","Stomatologie / Chirurgie maxillo-faciale"
     ]
 )
+
 severity = st.sidebar.selectbox("Gravité du cas", ["Mineur", "Modéré", "Critique"], index=1)
 
 # ==================================================
@@ -102,29 +94,35 @@ severity = st.sidebar.selectbox("Gravité du cas", ["Mineur", "Modéré", "Criti
 if st.sidebar.button("🎬 Générer un nouveau cas clinique"):
     st.session_state.pop("current_case", None)
     st.session_state.pop("phase", None)
+
     with st.spinner("Génération du cas clinique en cours..."):
         try:
             case_text = generate_clinical_case(model_name, specialty, severity, groq_api_key)
             st.session_state["current_case"] = case_text
             st.session_state["phase"] = "input"
             st.success("✅ Cas clinique généré")
+
         except Exception as e:
             st.error(f"Erreur : {e}")
 
 # ==================================================
-# AFFICHAGE CAS + FORMULAIRE RÉPONSE
+# AFFICHAGE CAS + FORMULAIRE RÉPONSE ÉTUDIANT
 # ==================================================
 if "current_case" in st.session_state:
+
     st.markdown("## 📋 Cas Clinique")
     st.text_area("Texte du cas", st.session_state["current_case"], height=350, disabled=True)
 
     if st.session_state["phase"] == "input":
-        st.markdown("## 🧠 Votre tentative de réponse")
+
+        st.markdown("## 🧠 Votre raisonnement clinique")
+
         with st.form("user_response_form"):
-            obs = st.text_area("🩺 Observation", height=120)
-            pron = st.text_area("⚕️ Pronostic vital", height=120)
-            prise = st.text_area("👩‍⚕️ Prise en charge infirmière", height=120)
-            evalt = st.text_area("📈 Évaluation", height=120)
+            obs = st.text_area("🩺 Observation clinique", height=120)
+            pron = st.text_area("⚕️ Hypothèses diagnostiques / Pronostic vital", height=120)
+            prise = st.text_area("👩‍⚕️ Interventions infirmières proposées", height=120)
+            evalt = st.text_area("📈 Comment allez-vous évaluer l’état du patient ?", height=120)
+
             submit = st.form_submit_button("📤 Soumettre mes réponses")
 
             if submit:
@@ -143,20 +141,38 @@ if "current_case" in st.session_state:
 # ÉVALUATION IA
 # ==================================================
 if st.session_state.get("phase") == "evaluation":
+
     with st.spinner("Évaluation en cours par l'IA..."):
+
         user_responses = st.session_state["user_responses"]
         case_text = st.session_state["current_case"]
-        evaluation_prompt = f"""
-        Tu es un formateur en soins infirmiers. Cas clinique : {case_text}
-        Réponses de l'étudiant :
-        Observation : {user_responses['Observation']}
-        Pronostic vital : {user_responses['Pronostic vital']}
-        Prise en charge infirmière : {user_responses['Prise en charge infirmière']}
-        Évaluation : {user_responses['Évaluation']}
-        Mission : 1️⃣ Correction attendue 2️⃣ Comparaison 3️⃣ Note /5 par section 4️⃣ Feedback global constructif
-        """
 
-        headers = {"Authorization": f"Bearer {groq_api_key}", "Content-Type": "application/json"}
+        evaluation_prompt = f"""
+Tu es un formateur en soins infirmiers.
+
+Cas clinique :
+{case_text}
+
+Réponses de l'étudiant :
+
+Observation : {user_responses['Observation']}
+Hypothèses / Pronostic vital : {user_responses['Pronostic vital']}
+Interventions infirmières : {user_responses['Prise en charge infirmière']}
+Évaluation : {user_responses['Évaluation']}
+
+MISSION :
+1. Donne la correction attendue
+2. Compare avec les réponses de l'étudiant
+3. Donne une note /5 pour chaque section
+4. Donne une note finale /20
+5. Donne un feedback constructif et pédagogique
+"""
+
+        headers = {
+            "Authorization": f"Bearer {groq_api_key}",
+            "Content-Type": "application/json",
+        }
+
         payload = {
             "model": model_name,
             "messages": [
@@ -173,14 +189,18 @@ if st.session_state.get("phase") == "evaluation":
             json=payload,
             timeout=90,
         )
+
         result = response.json()["choices"][0]["message"]["content"]
+
         st.session_state["evaluation_result"] = result
         st.session_state["phase"] = "result"
+
         st.success("✅ Évaluation terminée")
 
 # ==================================================
 # RÉSULTAT FINAL
 # ==================================================
 if st.session_state.get("phase") == "result":
+
     st.markdown("## 🧾 Résultat de l’évaluation")
     st.markdown(st.session_state["evaluation_result"])
