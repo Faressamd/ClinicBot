@@ -28,13 +28,37 @@ def generate_clinical_case(model_name: str, specialty: str, severity: str, groq_
 
     prompt = f"""
 Tu es un formateur clinique pour étudiants en soins infirmiers.
-Génère un cas clinique réaliste en FRANÇAIS pour la spécialité suivante : {specialty}.
+
+Génère un cas clinique réaliste en français pour la spécialité suivante : {specialty}.
 Niveau de gravité : {severity}.
-Format demandé : texte libre (300-450 mots) structuré avec les sections suivantes :
-PATIENT DEMOGRAPHY, MOTIF, ANTECEDENTS, EXAMEN PHYSIQUE (signes vitaux),
-DONNEES PARACLINIQUES, DIAGNOSTIC PROBABLE, DIAGNOSTICS DIFFERENTIELS,
-PRISE_EN_CHARGE_INFIRMIERE (interventions prioritaires), PRONOSTIC_VITAL, RECOMMANDATIONS.
-Réponds uniquement par le texte du cas, rien d'autre.
+
+OBJECTIF :
+Ce cas doit aider l’étudiant à développer son jugement clinique en suivant la démarche clinique infirmière.
+
+IMPORTANT :
+- Ne donne PAS le diagnostic final
+- Ne donne PAS directement la prise en charge complète
+- Donne uniquement des indices permettant le raisonnement clinique
+
+FORMAT OBLIGATOIRE (300–450 mots) :
+
+1. Situation clinique
+Présente le patient (âge, sexe, contexte), le motif d’hospitalisation et les symptômes principaux.
+
+2. Indices cliniques
+Donne les signes observés et les constantes vitales (température, TA, FC, FR...) sans interprétation.
+
+3. Données complémentaires
+Ajoute quelques résultats d’examens ou informations supplémentaires (incomplètes ou partielles).
+
+4. Raisonnement clinique (questions pour l’étudiant)
+- Quelles sont vos hypothèses diagnostiques ?
+- Quel est le problème prioritaire ?
+- Quelles données devez-vous encore recueillir ?
+- Quelles interventions infirmières proposez-vous ?
+- Comment allez-vous évaluer l’état du patient ?
+
+Réponds uniquement par le cas clinique structuré. Ne donne aucune réponse.
 """
 
     api_url = "https://api.groq.com/openai/v1/chat/completions"
