@@ -26,6 +26,8 @@ google_script_url = st.secrets["GOOGLE_SCRIPT_URL"]
 # FORMULAIRE IDENTIFICATION (MODE ÉTUDIANT UNIQUEMENT)
 # ==================================================
 
+submit_identity = False
+
 if not st.session_state["user_registered"]:
 
     st.markdown("## 👤 Identification de l'étudiant")
@@ -156,7 +158,7 @@ if "current_case" in st.session_state:
             # ==============================
             # 3. INTERVENTIONS INFIRMIÈRES
             # ==============================
-            st.markdown("### 3️⃣ Interventions infirmières")
+            st.markdown("### 3️⃣ Interventions infirmières ")
             nursing_actions = st.text_area("Quelles actions faites-vous immédiatement ?", height=140)
 
             # ==============================
