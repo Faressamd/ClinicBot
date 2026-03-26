@@ -6,7 +6,7 @@ from clinical_case_generator import generate_clinical_case, _load_secrets
 # CONFIG PAGE
 # ==================================================
 st.set_page_config(page_title="🏥 CLINIC-BOT", layout="wide")
-st.title("🏥 CLINIC-BOT — Formation clinique intelligente")
+st.title("NursaMind AI — L’intelligence au service du raisonnement clinique")
 
 # ==================================================
 # INITIALISATION SESSION
