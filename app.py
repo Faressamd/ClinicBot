@@ -25,15 +25,18 @@ google_script_url = st.secrets["GOOGLE_SCRIPT_URL"]
 # ==================================================
 # FORMULAIRE IDENTIFICATION (MODE ÉTUDIANT UNIQUEMENT)
 # ==================================================
-st.markdown("## 👤 Identification de l'étudiant")
 
-with st.form("user_identity_form"):
-    st.session_state["nom"] = st.text_input("Nom")
-    st.session_state["prenom"] = st.text_input("Prénom")
-    st.session_state["classe"] = st.text_input("Classe")
-    st.session_state["etablissement_scolaire"] = st.text_input("Établissement scolaire")
+if not st.session_state["user_registered"]:
 
-    submit_identity = st.form_submit_button("💾 Enregistrer")
+    st.markdown("## 👤 Identification de l'étudiant")
+
+    with st.form("user_identity_form"):
+        st.session_state["nom"] = st.text_input("Nom")
+        st.session_state["prenom"] = st.text_input("Prénom")
+        st.session_state["classe"] = st.text_input("Classe")
+        st.session_state["etablissement_scolaire"] = st.text_input("Établissement scolaire")
+
+        submit_identity = st.form_submit_button("💾 Enregistrer")
 
 # ==================================================
 # ENREGISTREMENT GOOGLE SHEET
@@ -159,7 +162,7 @@ if "current_case" in st.session_state:
             # ==============================
             # 4. ÉVALUATION
             # ==============================
-            st.markdown("### 4️⃣ Évaluation ")
+            st.markdown("### 4️⃣ Évaluation")
             evaluation = st.text_area("Quels paramètres allez-vous surveiller ?", height=120)
 
             submit = st.form_submit_button("📤 Soumettre mes réponses")
