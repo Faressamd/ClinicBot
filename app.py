@@ -147,19 +147,19 @@ if "current_case" in st.session_state:
             # ==============================
             # 2. COLLECTE DES DONNÉES
             # ==============================
-            st.markdown("### 2️⃣ Quelles données devez-vous encore recueillir ?")
+            st.markdown("### 2️⃣ Collecte des données")
             data_collection = st.text_area("Examens complémentaires / Informations à rechercher", height=120)
 
             # ==============================
             # 3. INTERVENTIONS INFIRMIÈRES
             # ==============================
-            st.markdown("### 3️⃣ Interventions infirmières prioritaires")
+            st.markdown("### 3️⃣ Interventions infirmières")
             nursing_actions = st.text_area("Quelles actions faites-vous immédiatement ?", height=140)
 
             # ==============================
             # 4. ÉVALUATION
             # ==============================
-            st.markdown("### 4️⃣ Comment allez-vous évaluer l'état du patient ?")
+            st.markdown("### 4️⃣ Évaluation ")
             evaluation = st.text_area("Quels paramètres allez-vous surveiller ?", height=120)
 
             submit = st.form_submit_button("📤 Soumettre mes réponses")
