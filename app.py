@@ -118,22 +118,46 @@ if "current_case" in st.session_state:
         st.markdown("## 🧠 Votre raisonnement clinique")
 
         with st.form("user_response_form"):
-            obs = st.text_area("🩺 Observation clinique", height=120)
-            pron = st.text_area("⚕️ Hypothèses diagnostiques / Pronostic vital", height=120)
-            prise = st.text_area("👩‍⚕️ Interventions infirmières proposées", height=120)
-            evalt = st.text_area("📈 Comment allez-vous évaluer l’état du patient ?", height=120)
+
+            # ==============================
+            # 1. HYPOTHÈSES PAR PRIORITÉ
+            # ==============================
+            st.markdown("### 1️⃣ Hypothèses diagnostiques par priorité")
+            hyp1 = st.text_area("Hypothèse prioritaire (la plus urgente)", height=90)
+            hyp2 = st.text_area("Deuxième hypothèse", height=90)
+            hyp3 = st.text_area("Troisième hypothèse", height=90)
+
+            # ==============================
+            # 2. COLLECTE DES DONNÉES
+            # ==============================
+            st.markdown("### 2️⃣ Quelles données devez-vous encore recueillir ?")
+            data_collection = st.text_area("Examens complémentaires / Informations à rechercher", height=120)
+
+            # ==============================
+            # 3. INTERVENTIONS INFIRMIÈRES
+            # ==============================
+            st.markdown("### 3️⃣ Interventions infirmières prioritaires")
+            nursing_actions = st.text_area("Quelles actions faites-vous immédiatement ?", height=140)
+
+            # ==============================
+            # 4. ÉVALUATION
+            # ==============================
+            st.markdown("### 4️⃣ Comment allez-vous évaluer l'état du patient ?")
+            evaluation = st.text_area("Quels paramètres allez-vous surveiller ?", height=120)
 
             submit = st.form_submit_button("📤 Soumettre mes réponses")
 
             if submit:
-                if not all([obs, pron, prise, evalt]):
-                    st.warning("⚠️ Tous les champs sont obligatoires")
+                if not all([hyp1, data_collection, nursing_actions, evaluation]):
+                    st.warning("⚠️ Tous les champs principaux sont obligatoires")
                 else:
                     st.session_state["user_responses"] = {
-                        "Observation": obs,
-                        "Pronostic vital": pron,
-                        "Prise en charge infirmière": prise,
-                        "Évaluation": evalt,
+                        "Hypothèse 1": hyp1,
+                        "Hypothèse 2": hyp2,
+                        "Hypothèse 3": hyp3,
+                        "Collecte des données": data_collection,
+                        "Interventions infirmières": nursing_actions,
+                        "Évaluation": evaluation,
                     }
                     st.session_state["phase"] = "evaluation"
 
@@ -155,17 +179,22 @@ Cas clinique :
 
 Réponses de l'étudiant :
 
-Observation : {user_responses['Observation']}
-Hypothèses / Pronostic vital : {user_responses['Pronostic vital']}
-Interventions infirmières : {user_responses['Prise en charge infirmière']}
+Hypothèse 1 (prioritaire) : {user_responses['Hypothèse 1']}
+Hypothèse 2 : {user_responses['Hypothèse 2']}
+Hypothèse 3 : {user_responses['Hypothèse 3']}
+
+Collecte des données : {user_responses['Collecte des données']}
+
+Interventions infirmières : {user_responses['Interventions infirmières']}
+
 Évaluation : {user_responses['Évaluation']}
 
 MISSION :
 1. Donne la correction attendue
-2. Compare avec les réponses de l'étudiant
-3. Donne une note /5 pour chaque section
+2. Vérifie si la priorité clinique est correcte
+3. Donne une note /5 pour chaque partie
 4. Donne une note finale /20
-5. Donne un feedback constructif et pédagogique
+5. Donne un feedback pédagogique clair et constructif
 """
 
         headers = {
