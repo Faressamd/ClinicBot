@@ -148,13 +148,13 @@ if "current_case" in st.session_state:
             submit = st.form_submit_button("📤 Soumettre mes réponses")
 
             if submit:
-                if not all([hyp1, data_collection, nursing_actions, evaluation]):
+                if not all([hyp1, data_collection, nursing_actions, evaluation]):  # Hypothèse 3 non obligatoire
                     st.warning("⚠️ Tous les champs principaux sont obligatoires")
                 else:
                     st.session_state["user_responses"] = {
                         "Hypothèse 1": hyp1,
                         "Hypothèse 2": hyp2,
-                        "Hypothèse 3": hyp3,
+                        "Hypothèse 3": hyp3 if hyp3 else "Non renseignée",
                         "Collecte des données": data_collection,
                         "Interventions infirmières": nursing_actions,
                         "Évaluation": evaluation,
@@ -172,7 +172,9 @@ if st.session_state.get("phase") == "evaluation":
         case_text = st.session_state["current_case"]
 
         evaluation_prompt = f"""
-Tu es un formateur en soins infirmiers.
+Tu es un formateur clinique expérimenté en soins infirmiers.
+
+Ton rôle est d'évaluer OBJECTIVEMENT les réponses de l'étudiant en fonction de ce qu'il a réellement écrit.
 
 Cas clinique :
 {case_text}
@@ -189,12 +191,34 @@ Interventions infirmières : {user_responses['Interventions infirmières']}
 
 Évaluation : {user_responses['Évaluation']}
 
-MISSION :
-1. Donne la correction attendue
-2. Vérifie si la priorité clinique est correcte
-3. Donne une note /5 pour chaque partie
-4. Donne une note finale /20
-5. Donne un feedback pédagogique clair et constructif
+RÈGLES IMPORTANTES POUR L'ÉVALUATION :
+- Ne donne pas une note générique
+- Analyse ce que l'étudiant a réellement écrit
+- Si la réponse est partielle → donne une note partielle
+- Si la réponse est logique mais incomplète → valorise le raisonnement
+- Si la priorité clinique est fausse → explique pourquoi
+- Si une partie est vide ou très faible → note faible mais reste pédagogique
+
+FORMAT DE RÉPONSE OBLIGATOIRE :
+
+1️⃣ Correction attendue (version formateur claire et structurée)
+
+2️⃣ Analyse des réponses de l'étudiant
+- Hypothèses diagnostiques : (analyse précise)
+- Collecte des données : (analyse précise)
+- Interventions infirmières : (analyse précise)
+- Évaluation : (analyse précise)
+
+3️⃣ Notation détaillée
+Hypothèses diagnostiques : X /5
+Collecte des données : X /5
+Interventions infirmières : X /5
+Évaluation : X /5
+
+4️⃣ Note finale : X /20
+
+5️⃣ Feedback pédagogique
+Donne un feedback clair, encourageant mais honnête, comme un vrai formateur clinique.
 """
 
         headers = {
