@@ -27,38 +27,53 @@ def generate_clinical_case(model_name: str, specialty: str, severity: str, groq_
         _, model_name = _load_secrets()
 
     prompt = f"""
-Tu es un formateur clinique pour étudiants en soins infirmiers.
+Tu es un formateur clinique expérimenté pour étudiants en soins infirmiers.
 
-Génère un cas clinique réaliste en français pour la spécialité suivante : {specialty}.
+Ta mission est de générer un cas clinique réaliste en FRANÇAIS pour la spécialité suivante : {specialty}.
 Niveau de gravité : {severity}.
 
-OBJECTIF :
-Ce cas doit aider l’étudiant à développer son jugement clinique en suivant la démarche clinique infirmière.
+OBJECTIF PÉDAGOGIQUE :
+Ce cas doit obliger l’étudiant à analyser, réfléchir et proposer lui-même le diagnostic et la prise en charge.
 
-IMPORTANT :
-- Ne donne PAS le diagnostic final
-- Ne donne PAS directement la prise en charge complète
-- Donne uniquement des indices permettant le raisonnement clinique
+IMPORTANT (RÈGLE ABSOLUE) :
+Tu ne dois PAS donner :
+- le diagnostic final
+- le diagnostic probable
+- la prise en charge complète
+- le pronostic vital
+- les recommandations
+
+Tu dois uniquement donner des éléments cliniques permettant le raisonnement.
 
 FORMAT OBLIGATOIRE (300–450 mots) :
 
-1. Situation clinique
-Présente le patient (âge, sexe, contexte), le motif d’hospitalisation et les symptômes principaux.
+PATIENT DEMOGRAPHY  
+Âge, sexe, contexte médical ou social.
 
-2. Indices cliniques
-Donne les signes observés et les constantes vitales (température, TA, FC, FR...) sans interprétation.
+MOTIF D’HOSPITALISATION  
+Pourquoi le patient est admis.
 
-3. Données complémentaires
-Ajoute quelques résultats d’examens ou informations supplémentaires (incomplètes ou partielles).
+ANTÉCÉDENTS  
+Uniquement les antécédents utiles (pas trop longs).
 
-4. Raisonnement clinique (questions pour l’étudiant)
-- Quelles sont vos hypothèses diagnostiques ?
-- Quel est le problème prioritaire ?
-- Quelles données devez-vous encore recueillir ?
-- Quelles interventions infirmières proposez-vous ?
-- Comment allez-vous évaluer l’état du patient ?
+EXAMEN PHYSIQUE  
+Signes observés + constantes vitales (TA, FC, FR, température, SpO2…)
+Sans aucune interprétation.
 
-Réponds uniquement par le cas clinique structuré. Ne donne aucune réponse.
+DONNÉES PARACLINIQUES  
+Quelques résultats biologiques ou examens (partiels ou incomplets).
+
+FIN DU CAS
+
+IMPORTANT :
+Le texte doit se terminer après les données cliniques.
+Ne donne aucune conclusion.
+Ne donne aucune solution.
+Ne donne aucune réponse.
+Le cas clinique doit être construit de manière progressive, basé sur des indices cliniques, permettant à l’étudiant de formuler des hypothèses, d’analyser la situation et de développer son raisonnement clinique sans fournir directement les réponses
+
+
+Réponds uniquement par le cas clinique.
 """
 
     api_url = "https://api.groq.com/openai/v1/chat/completions"
