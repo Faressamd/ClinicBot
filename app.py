@@ -89,9 +89,26 @@ specialty = st.sidebar.selectbox(
 severity = st.sidebar.selectbox("Gravité du cas", ["Mineur", "Modéré", "Critique"], index=1)
 
 # ==================================================
+# QUESTIONNAIRE PRÉ-TEST (OBLIGATOIRE)
+# ==================================================
+
+st.markdown("## 📋 Questionnaire Pré-test obligatoire")
+
+st.markdown("""
+Ce questionnaire vise à évaluer le niveau initial de jugement clinique des étudiants
+avant l’utilisation de l’application basée sur l’intelligence artificielle.
+""")
+
+st.markdown("👉 Cliquez ici pour accéder au questionnaire :")
+
+st.markdown("[Accéder au Pré-test](https://docs.google.com/forms/d/e/1FAIpQLSdnmCZnWPxyJG0xqtr-PDJFln_1fZ0VJSOChiMIm3_3Apegtg/formResponse?pli=1)")
+
+pretest_done = st.checkbox("J’ai complété le questionnaire Pré-test")
+
+# ==================================================
 # GÉNÉRATION CAS CLINIQUE
 # ==================================================
-if st.sidebar.button("🎬 Générer un nouveau cas clinique"):
+if pretest_done and st.sidebar.button("🎬 Générer un nouveau cas clinique"):
     st.session_state.pop("current_case", None)
     st.session_state.pop("phase", None)
 
@@ -257,3 +274,19 @@ if st.session_state.get("phase") == "result":
 
     st.markdown("## 🧾 Résultat de l’évaluation")
     st.markdown(st.session_state["evaluation_result"])
+
+    # ==================================================
+    # QUESTIONNAIRE POST-TEST
+    # ==================================================
+
+    st.markdown("---")
+    st.markdown("## 📋 Questionnaire Post-test")
+
+    st.markdown("""
+Ce questionnaire vise à évaluer l’amélioration du jugement clinique des étudiants
+après l’utilisation de l’application basée sur l’intelligence artificielle.
+""")
+
+    st.markdown("👉 Cliquez ici pour accéder au questionnaire :")
+
+    st.markdown("[Accéder au Post-test](https://docs.google.com/forms/d/e/1FAIpQLSf4CbpAPMKK2gQ5E02Va3jX6Cj_vNT3hKUmV_TVcnaO8pXpWQ/viewform)")
