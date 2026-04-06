@@ -46,10 +46,8 @@ if submit_identity:
         st.warning("⚠️ Nom et prénom sont obligatoires")
     else:
         payload = {
-            "nom": st.session_state["nom"],
-            "prenom": st.session_state["prenom"],
             "classe": st.session_state["classe"],
-            "etablissement_scolaire": st.session_state["etablissement_scolaire"],
+            "etablissement_scolaire": st.session_state["etablissement_Universitaire"],
         }
 
         try:
