@@ -34,7 +34,7 @@ if not st.session_state["user_registered"]:
 
     with st.form("user_identity_form"):
         st.session_state["classe"] = st.text_input("Classe")
-        st.session_state["etablissement_scolaire"] = st.text_input("Établissement Universitaire")
+        st.session_state["etablissement_scolaire"] = st.text_input("Établissement scolaire")
 
         submit_identity = st.form_submit_button("💾 Enregistrer")
 
@@ -43,11 +43,11 @@ if not st.session_state["user_registered"]:
 # ==================================================
 if submit_identity:
     if not st.session_state["classe"] or not st.session_state["etablissement_scolaire"]:
-        st.warning("⚠️ classe et Établissement Universitaire sont obligatoires")
+        st.warning("⚠️ Classe et établissement scolaire sont obligatoires")
     else:
         payload = {
             "classe": st.session_state["classe"],
-            "etablissement_scolaire": st.session_state["etablissement_Universitaire"],
+            "etablissement_scolaire": st.session_state["etablissement_scolaire"],
         }
 
         try:
@@ -61,7 +61,6 @@ if submit_identity:
 
         except Exception as e:
             st.error(f"Erreur : {e}")
-
 # ==================================================
 # BLOCAGE SI NON ENREGISTRÉ
 # ==================================================
