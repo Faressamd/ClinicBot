@@ -42,8 +42,8 @@ if not st.session_state["user_registered"]:
 # ENREGISTREMENT GOOGLE SHEET
 # ==================================================
 if submit_identity:
-    if not st.session_state["nom"] or not st.session_state["prenom"]:
-        st.warning("⚠️ Nom et prénom sont obligatoires")
+    if not st.session_state["classe"] or not st.session_state["Établissement Universitaire"]:
+        st.warning("⚠️ classe et Établissement Universitaire sont obligatoires")
     else:
         payload = {
             "classe": st.session_state["classe"],
