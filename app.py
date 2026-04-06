@@ -34,7 +34,7 @@ if not st.session_state["user_registered"]:
 
     with st.form("user_identity_form"):
         st.session_state["classe"] = st.text_input("Classe")
-        st.session_state["etablissement_scolaire"] = st.text_input("Établissement scolaire")
+        st.session_state["etablissement_scolaire"] = st.text_input("Établissement Universitaire")
 
         submit_identity = st.form_submit_button("💾 Enregistrer")
 
